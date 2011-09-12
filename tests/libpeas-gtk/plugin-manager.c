@@ -45,14 +45,6 @@ struct _TestFixture {
 };
 
 static void
-notify_model_cb (GtkTreeView *view,
-                 GParamSpec  *pspec,
-                 TestFixture *fixture)
-{
-  fixture->model = gtk_tree_view_get_model (GTK_TREE_VIEW (fixture->view));
-}
-
-static void
 plugin_manager_forall_cb (GtkWidget  *widget,
                           GtkWidget **toolbar)
 {
@@ -76,6 +68,7 @@ test_setup (TestFixture   *fixture,
   fixture->window_group = gtk_window_group_new ();
   fixture->manager = PEAS_GTK_PLUGIN_MANAGER (peas_gtk_plugin_manager_new (NULL));
   fixture->view = PEAS_GTK_PLUGIN_MANAGER_VIEW (peas_gtk_plugin_manager_get_view (fixture->manager));
+  fixture->model = gtk_tree_view_get_model (GTK_TREE_VIEW (fixture->view));
   fixture->selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (fixture->view));
 
   /* gtk_window_set_transient_for() will not add to the
@@ -87,14 +80,6 @@ test_setup (TestFixture   *fixture,
 
   gtk_container_add (GTK_CONTAINER (fixture->window),
                      GTK_WIDGET (fixture->manager));
-
-  g_signal_connect (fixture->view,
-                    "notify::model",
-                    G_CALLBACK (notify_model_cb),
-                    fixture);
-
-  /* Set the model */
-  g_object_notify (G_OBJECT (fixture->view), "model");
 
   /* Must use forall as the buttons are "internal" children */
   gtk_container_forall (GTK_CONTAINER (fixture->manager),
@@ -204,11 +189,6 @@ test_gtk_plugin_manager_about_button_sensitivity (TestFixture *fixture)
 
   testing_util_push_log_hook ("Could not find plugin 'does-not-exist'*");
 
-  /* Must come first otherwise the first iter may
-   * be after a revealed builtin plugin
-   */
-  peas_gtk_plugin_manager_view_set_show_builtin (fixture->view, TRUE);
-
   /* Causes the plugin to become unavailable */
   info = peas_engine_get_plugin_info (fixture->engine, "unavailable");
   peas_engine_load_plugin (fixture->engine, info);
@@ -231,11 +211,6 @@ test_gtk_plugin_manager_configure_button_sensitivity (TestFixture *fixture)
   PeasPluginInfo *info;
 
   testing_util_push_log_hook ("Could not find plugin 'does-not-exist'*");
-
-  /* Must come first otherwise the first iter may
-   * be after a revealed builtin plugin
-   */
-  peas_gtk_plugin_manager_view_set_show_builtin (fixture->view, TRUE);
 
   /* So we can configure them */
   info = peas_engine_get_plugin_info (fixture->engine, "builtin-configurable");
@@ -314,9 +289,6 @@ test_gtk_plugin_manager_about_dialog (TestFixture *fixture)
   PeasPluginInfo *info;
   const gchar **authors_plugin;
   const gchar * const *authors_dialog;
-
-  /* Full Info is a builtin plugin */
-  peas_gtk_plugin_manager_view_set_show_builtin (fixture->view, TRUE);
 
   info = peas_engine_get_plugin_info (fixture->engine, "full-info");
 
@@ -434,7 +406,6 @@ test_gtk_plugin_manager_gtkbuilder (void)
     "<?xml version='1.0' encoding='UTF-8'?>\n"
     "<interface>\n"
     "<object class='PeasGtkPluginManagerView' id='view'>\n"
-    "  <property name='show-builtin'>True</property>\n"
     "</object>\n"
     "<object class='PeasGtkPluginManager' id='manager'>\n"
     "  <property name='view'>view</property>\n"
@@ -452,8 +423,6 @@ test_gtk_plugin_manager_gtkbuilder (void)
   view = PEAS_GTK_PLUGIN_MANAGER_VIEW (peas_gtk_plugin_manager_get_view (manager));
 
   g_assert (G_OBJECT (view) == gtk_builder_get_object (builder, "view"));
-
-  g_assert (peas_gtk_plugin_manager_view_get_show_builtin (view));
 
   /* Freeing the builder will free the objects */
   g_object_unref (builder);
