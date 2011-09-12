@@ -67,17 +67,6 @@ struct _PeasExtensionSet {
 struct _PeasExtensionSetClass {
   GObjectClass parent_class;
 
-  /* Virtual public methods */
-#ifndef PEAS_DISABLE_DEPRECATED
-  gboolean   (*call)                      (PeasExtensionSet *set,
-                                           const gchar      *method_name,
-                                           GIArgument       *args);
-#else
-  /*< private >*/
-  gpointer __DEPRECATED_call;
-#endif
-
-  /*< public >*/
   /* Signals */
   void       (*extension_added)           (PeasExtensionSet *set,
                                            PeasPluginInfo   *info,
@@ -111,18 +100,6 @@ typedef void (*PeasExtensionSetForeachFunc) (PeasExtensionSet *set,
  * Public methods
  */
 GType              peas_extension_set_get_type    (void)  G_GNUC_CONST;
-
-#if !defined(PEAS_DISABLE_DEPRECATED) && !defined(__GI_SCANNER__)
-gboolean           peas_extension_set_call        (PeasExtensionSet *set,
-                                                   const gchar      *method_name,
-                                                   ...);
-gboolean           peas_extension_set_call_valist (PeasExtensionSet *set,
-                                                   const gchar      *method_name,
-                                                   va_list           va_args);
-gboolean           peas_extension_set_callv       (PeasExtensionSet *set,
-                                                   const gchar      *method_name,
-                                                   GIArgument       *args);
-#endif
 
 void               peas_extension_set_foreach     (PeasExtensionSet *set,
                                                    PeasExtensionSetForeachFunc func,
