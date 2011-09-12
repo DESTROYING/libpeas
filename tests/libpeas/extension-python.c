@@ -42,7 +42,7 @@ test_extension_python_instance_refcount (PeasEngine     *engine,
                                             INTROSPECTION_TYPE_BASE,
                                             NULL);
 
-  g_assert (PEAS_IS_EXTENSION (extension));
+  g_assert (INTROSPECTION_IS_BASE (extension));
 
   instance = ((PeasExtensionPython *) extension)->instance;
 
@@ -74,7 +74,7 @@ test_extension_python_activatable_subject_refcount (PeasEngine     *engine,
                                             "object", object,
                                             NULL);
 
-  g_assert (PEAS_IS_EXTENSION (extension));
+  g_assert (PEAS_IS_ACTIVATABLE (extension));
 
   /* The python wrapper created around our dummy object should have increased
    * its refcount by 1.

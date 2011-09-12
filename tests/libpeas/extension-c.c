@@ -38,7 +38,7 @@ test_extension_c_instance_refcount (PeasEngine     *engine,
                                             INTROSPECTION_TYPE_BASE,
                                             NULL);
 
-  g_assert (PEAS_IS_EXTENSION (extension));
+  g_assert (INTROSPECTION_IS_BASE (extension));
 
   /* The refcount of the returned object should be 1:
    *  - one ref for the PeasExtension
