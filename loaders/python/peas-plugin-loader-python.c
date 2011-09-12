@@ -127,7 +127,7 @@ peas_plugin_loader_python_provides_extension (PeasPluginLoader *loader,
   return extension_type != NULL;
 }
 
-static PeasExtension *
+static GObject *
 peas_plugin_loader_python_create_extension (PeasPluginLoader *loader,
                                             PeasPluginInfo   *info,
                                             GType             exten_type,
@@ -142,7 +142,7 @@ peas_plugin_loader_python_create_extension (PeasPluginLoader *loader,
   PyObject *pyobject;
   PyObject *pyplinfo;
   PyGILState_STATE state;
-  PeasExtension *exten = NULL;
+  GObject *exten = NULL;
 
   pyinfo = (PythonInfo *) g_hash_table_lookup (pyloader->priv->loaded_plugins, info);
 

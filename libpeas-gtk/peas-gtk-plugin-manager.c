@@ -213,7 +213,7 @@ show_configure_cb (GtkWidget            *widget,
 {
   PeasGtkPluginManagerView *view = PEAS_GTK_PLUGIN_MANAGER_VIEW (pm->priv->view);
   PeasPluginInfo *info;
-  PeasExtension *exten;
+  GObject *exten;
   GtkWindow *toplevel;
   GtkWidget *conf_widget = NULL;
   GtkWidget *conf_dlg;

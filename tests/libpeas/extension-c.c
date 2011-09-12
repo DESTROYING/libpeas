@@ -32,7 +32,7 @@ static void
 test_extension_c_instance_refcount (PeasEngine     *engine,
                                     PeasPluginInfo *info)
 {
-  PeasExtension *extension;
+  GObject *extension;
 
   extension = peas_engine_create_extension (engine, info,
                                             INTROSPECTION_TYPE_BASE,
@@ -41,7 +41,7 @@ test_extension_c_instance_refcount (PeasEngine     *engine,
   g_assert (INTROSPECTION_IS_BASE (extension));
 
   /* The refcount of the returned object should be 1:
-   *  - one ref for the PeasExtension
+   *  - one ref for the GObject
    */
   g_assert_cmpint (extension->ref_count, ==, 1);
 

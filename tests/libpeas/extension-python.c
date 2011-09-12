@@ -35,7 +35,7 @@ static void
 test_extension_python_instance_refcount (PeasEngine     *engine,
                                          PeasPluginInfo *info)
 {
-  PeasExtension *extension;
+  GObject *extension;
   PyObject *instance;
 
   extension = peas_engine_create_extension (engine, info,
@@ -58,7 +58,7 @@ static void
 test_extension_python_activatable_subject_refcount (PeasEngine     *engine,
                                                     PeasPluginInfo *info)
 {
-  PeasExtension *extension;
+  GObject *extension;
   GObject *object;
   PyObject *wrapper;
 

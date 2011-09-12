@@ -169,7 +169,7 @@ sort_interfaces (GArray *interfaces)
     }
 }
 
-static PeasExtension *
+static GObject *
 peas_plugin_loader_gjs_create_extension (PeasPluginLoader *loader,
                                          PeasPluginInfo   *info,
                                          GType             exten_type,

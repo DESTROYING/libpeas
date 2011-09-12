@@ -165,7 +165,7 @@ sort_interfaces (GArray *interfaces)
     }
 }
 
-static PeasExtension *
+static GObject *
 peas_plugin_loader_seed_create_extension (PeasPluginLoader *loader,
                                           PeasPluginInfo   *info,
                                           GType             exten_type,
