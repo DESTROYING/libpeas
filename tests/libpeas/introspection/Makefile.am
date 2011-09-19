@@ -19,6 +19,8 @@ libintrospection_1_0_la_SOURCES = \
 	introspection-callable.h	\
 	introspection-properties.c	\
 	introspection-properties.h	\
+	introspection-signals.c		\
+	introspection-signals.h		\
 	introspection-unimplemented.c	\
 	introspection-unimplemented.h
 

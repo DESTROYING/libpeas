@@ -56,6 +56,12 @@ struct _PeasExtensionWrapperClass {
                                            const gchar          *method,
                                            GIArgument           *args,
                                            GIArgument           *return_value);
+
+  gboolean   (*emit_signal)               (PeasExtensionWrapper  *exten,
+                                           GSignalInvocationHint *invocation_hint,
+                                           guint                  n_values,
+                                           const GValue          *instance_and_params,
+                                           GValue                *return_value);
 };
 
 /*
@@ -64,12 +70,18 @@ struct _PeasExtensionWrapperClass {
 GType        peas_extension_wrapper_get_type    (void)  G_GNUC_CONST;
 
 GType        peas_extension_wrapper_get_extension_type
-                                                (PeasExtensionWrapper *exten);
+                                                (PeasExtensionWrapper  *exten);
 
-gboolean     peas_extension_wrapper_callv       (PeasExtensionWrapper *exten,
-                                                 const gchar          *method_name,
-                                                 GIArgument           *args,
-                                                 GIArgument           *return_value);
+gboolean     peas_extension_wrapper_callv       (PeasExtensionWrapper  *exten,
+                                                 const gchar           *method_name,
+                                                 GIArgument            *args,
+                                                 GIArgument            *return_value);
+
+gboolean     peas_extension_wrapper_emit_signal (PeasExtensionWrapper  *exten,
+                                                 GSignalInvocationHint *invocation_hint,
+                                                 guint                  n_values,
+                                                 const GValue          *instance_and_params,
+                                                 GValue                *return_value);
 
 G_END_DECLS
 

@@ -78,3 +78,27 @@ peas_extension_wrapper_callv (PeasExtensionWrapper *exten,
   klass = PEAS_EXTENSION_WRAPPER_GET_CLASS (exten);
   return klass->call (exten, method_name, args, return_value);
 }
+
+gboolean
+peas_extension_wrapper_emit_signal (PeasExtensionWrapper  *exten,
+                                    GSignalInvocationHint *invocation_hint,
+                                    guint                  n_values,
+                                    const GValue          *instance_and_params,
+                                    GValue                *return_value)
+{
+  PeasExtensionWrapperClass *klass;
+
+  g_return_val_if_fail (PEAS_IS_EXTENSION_WRAPPER (exten), FALSE);
+  g_return_val_if_fail (n_values > 0, FALSE);
+  g_return_val_if_fail (instance_and_params != NULL, FALSE);
+
+  klass = PEAS_EXTENSION_WRAPPER_GET_CLASS (exten);
+  if (klass->emit_signal == NULL)
+    {
+      g_warning ("Emitting signals is not supported by this loader.");
+      return FALSE;
+    }
+
+  return klass->emit_signal (exten, invocation_hint, n_values,
+                             instance_and_params, return_value);
+}

@@ -259,17 +259,68 @@ extension_subclass_get_property (GObject    *object,
 }
 
 static void
+signal_class_closure_marshal (GClosure              *closure,
+                              GValue                *return_value,
+                              guint                  n_values,
+                              const GValue          *instance_and_params,
+                              GSignalInvocationHint *invocation_hint)
+{
+  GObject *object;
+  GSignalQuery signal_query;
+  const GValue *saved_instance_and_params;
+  static const GValue *current_instance_and_params = NULL;
+
+  object = g_value_get_object (&instance_and_params[0]);
+
+  g_signal_query (invocation_hint->signal_id, &signal_query);
+
+  /* Because signals to the extension follow the pattern
+   * below we have to guard against recursive signal emissions.
+   *
+   * App->Subclass->Extension->emit(object)->Extension->Subclass
+   */
+  if (current_instance_and_params != NULL &&
+      memcmp (current_instance_and_params, instance_and_params,
+              sizeof (GValue) * n_values) == 0)
+    {
+      g_signal_stop_emission (object, invocation_hint->signal_id,
+                              invocation_hint->detail);
+      g_debug ("Blocked recursive emission of '%s::%s'",
+               G_OBJECT_TYPE_NAME (object), signal_query.signal_name);
+      return;
+    }
+
+  saved_instance_and_params = current_instance_and_params;
+  current_instance_and_params = instance_and_params;
+
+  g_debug ("Emitting '%s::%s'",
+           G_OBJECT_TYPE_NAME (object), signal_query.signal_name);
+
+  peas_extension_wrapper_emit_signal (PEAS_EXTENSION_WRAPPER (object),
+                                      invocation_hint,
+                                      n_values, instance_and_params,
+                                      return_value);
+
+  current_instance_and_params = saved_instance_and_params;
+
+  g_signal_chain_from_overridden (instance_and_params, return_value);
+}
+
+static void
 extension_subclass_init (GObjectClass *klass,
                          GType         exten_type)
 {
-  guint n_props, i;
+  guint n_props, n_signals, i;
   gpointer iface_vtable;
   GParamSpec **properties;
+  guint *signals;
+  static GClosure *signal_closure = NULL;
 
   g_debug ("Initializing class '%s'", G_OBJECT_CLASS_NAME (klass));
 
   iface_vtable = g_type_default_interface_peek (exten_type);
   properties = g_object_interface_list_properties (iface_vtable, &n_props);
+  signals = g_signal_list_ids (exten_type, &n_signals);
 
   if (n_props > 0)
     {
@@ -288,7 +339,33 @@ extension_subclass_init (GObjectClass *klass,
         }
     }
 
+  if (n_signals > 0 && signal_closure == NULL)
+    {
+      signal_closure = g_closure_new_simple (sizeof (GClosure), NULL);
+      g_closure_set_marshal (signal_closure,
+                             (GClosureMarshal) signal_class_closure_marshal);
+
+      g_closure_ref (signal_closure);
+      g_closure_sink (signal_closure);
+    }
+
+  for (i = 0; i < n_signals; ++i)
+    {
+      GSignalQuery signal_query;
+
+      g_signal_override_class_closure (signals[i],
+                                       G_OBJECT_CLASS_TYPE (klass),
+                                       signal_closure);
+
+      g_signal_query (signals[i], &signal_query);
+
+      g_debug ("Overrided '%s::%s' for '%s' proxy",
+               g_type_name (exten_type), signal_query.signal_name,
+               G_OBJECT_CLASS_NAME (klass));
+    }
+
   g_free (properties);
+  g_free (signals);
 
   g_debug ("Initialized class '%s'", G_OBJECT_CLASS_NAME (klass));
 }

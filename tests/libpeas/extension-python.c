@@ -148,6 +148,7 @@ main (int   argc,
   g_type_init ();
 
   EXTENSION_TESTS (python);
+  EXTENSION_TESTS_SIGNALS (python);
 
   EXTENSION_TEST (python, "instance-refcount", instance_refcount);
   EXTENSION_TEST (python, "activatable-subject-refcount", activatable_subject_refcount);

@@ -143,6 +143,7 @@ peas_plugin_loader_python_create_extension (PeasPluginLoader *loader,
   PyObject *pyplinfo;
   PyGILState_STATE state;
   PeasExtension *exten = NULL;
+  PyObject *ret;
 
   pyinfo = (PythonInfo *) g_hash_table_lookup (pyloader->priv->loaded_plugins, info);
 
@@ -176,6 +177,13 @@ peas_plugin_loader_python_create_extension (PeasPluginLoader *loader,
   pyplinfo = pyg_boxed_new (PEAS_TYPE_PLUGIN_INFO, info, TRUE, TRUE);
   PyObject_SetAttrString (pyobject, "plugin_info", pyplinfo);
   Py_DECREF (pyplinfo);
+
+  ret = PyObject_CallMethod (pyobject, "__init__", NULL);
+
+  if (ret != NULL)
+    Py_DECREF (ret);
+  else
+    PyErr_Clear ();
 
   exten = peas_extension_python_new (exten_type, pyobject);
   Py_DECREF (pyobject);
