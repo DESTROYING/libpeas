@@ -108,7 +108,6 @@ static void
 test_extension_provides_invalid (PeasEngine     *engine,
                                  PeasPluginInfo *info)
 {
-
   testing_util_push_log_hook ("*assertion `G_TYPE_IS_INTERFACE (*)' failed");
 
   /* Invalid GType */
