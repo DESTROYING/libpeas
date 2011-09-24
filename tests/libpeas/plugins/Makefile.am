@@ -1,6 +1,6 @@
 include $(top_srcdir)/tests/Makefile.plugin
 
-SUBDIRS = extension-c
+SUBDIRS = extension-c single-instance
 
 if ENABLE_GJS
 SUBDIRS += extension-js

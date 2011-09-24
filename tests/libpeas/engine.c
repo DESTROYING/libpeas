@@ -427,6 +427,59 @@ test_engine_nonexistent_search_path (PeasEngine *engine)
   peas_engine_add_search_path (engine, "/nowhere", NULL);
 }
 
+static void
+test_engine_single_instance (PeasEngine *engine)
+{
+  PeasPluginInfo *info;
+  PeasExtension *extensions[2];
+
+  testing_util_push_log_hook ("*!= PEAS_TYPE_SINGLE_INSTANCE*");
+
+  info = peas_engine_get_plugin_info (engine, "single-instance");
+
+  g_assert (peas_engine_load_plugin (engine, info));
+
+  /* Check that we cannot get an extension for a PeasSingleInstance */
+ extensions[0] = peas_engine_create_extension (engine, info,
+                                               PEAS_TYPE_SINGLE_INSTANCE,
+                                               NULL);
+  g_assert (extensions[0] == NULL);
+
+
+  /* Check that we get only a single instance */
+  extensions[0] = peas_engine_create_extension (engine, info,
+                                                PEAS_TYPE_ACTIVATABLE,
+                                                "object", engine,
+                                                NULL);
+  extensions[1] = peas_engine_create_extension (engine, info,
+                                                PEAS_TYPE_ACTIVATABLE,
+                                                "object", engine,
+                                                NULL);
+  g_assert (extensions[0] == extensions[1]);
+  g_object_unref (extensions[0]);
+
+
+#ifdef MULTIPLE_INTERFACES
+  /* Check that we get the single instance when
+   * asking for an extension of another interface
+   */
+ extensions[0] = peas_engine_create_extension (engine, info,
+                                               OTHER_TYPE_INTERFACE,
+                                               NULL);
+  g_assert (extensions[0] == extensions[1]);
+  g_object_unref (extensions[0]);
+#endif
+
+
+  /* Check that after the final instance is unreffed we get a new instance */
+  g_object_unref (extensions[1]);
+  extensions[0] = peas_engine_create_extension (engine, info,
+                                                PEAS_TYPE_ACTIVATABLE,
+                                                "object", engine,
+                                                NULL);
+  g_assert (extensions[0] != extensions[1]);
+  g_object_unref (extensions[0]);
+}
 
 static void
 test_engine_shutdown (void)
@@ -485,6 +538,8 @@ main (int    argc,
   TEST ("enable-loader-multiple-times", enable_loader_multiple_times);
 
   TEST ("nonexistent-search-path", nonexistent_search_path);
+
+  TEST ("single-instance", single_instance);
 
   /* MUST be last */
   TEST_FUNC ("shutdown", shutdown);

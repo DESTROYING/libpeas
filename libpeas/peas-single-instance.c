@@ -1,6 +1,8 @@
 /*
- * peas.h
+ * peas-single-instance.c
  * This file is part of libpeas
+ *
+ * Copyright (C) 2011 Garrett Regier
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Library General Public License as published by
@@ -17,16 +19,29 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PEAS_H__
-#define __PEAS_H__
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-#include "peas-activatable.h"
-#include "peas-engine.h"
-#include "peas-extension.h"
-#include "peas-extension-base.h"
-#include "peas-extension-set.h"
-#include "peas-object-module.h"
-#include "peas-plugin-info.h"
 #include "peas-single-instance.h"
 
-#endif
+/**
+ * SECTION:peas-single-instance
+ * @short_description: Interface for single instance plugins.
+ *
+ * #PeasSingleInstance is an interface which should be implemented by plugins
+ * that should be single instances.
+ *
+ * By implementing #PeasSingleInstance the extension will only be created
+ * once and will be destroyed upon unloading.
+ *
+ * This is useful if your plugin implements #PeasActivatable and
+ * #PeasGtkConfigurable.
+ **/
+
+G_DEFINE_INTERFACE(PeasSingleInstance, peas_single_instance, G_TYPE_OBJECT)
+
+void
+peas_single_instance_default_init (PeasSingleInstanceInterface *iface)
+{
+}

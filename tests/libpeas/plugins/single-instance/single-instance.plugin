@@ -1,0 +1,8 @@
+[Plugin]
+Module=single-instance
+IAge=2
+Name=Single Instance
+Description=A single instance plugin.
+Authors=Garrett Regier
+Copyright=Copyright © 2011 Garrett Regier
+Website=http://live.gnome.org/Libpeas

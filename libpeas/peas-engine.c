@@ -37,6 +37,7 @@
 #include "peas-dirs.h"
 #include "peas-debug.h"
 #include "peas-helpers.h"
+#include "peas-single-instance.h"
 
 /**
  * SECTION:peas-engine
@@ -97,6 +98,9 @@ struct _PeasEnginePrivate {
   GList *search_paths;
 
   GList *plugin_list;
+
+  /* PeasPluginInfo -> GPtrArray -> GObject */
+  GHashTable *single_instances;
 
   guint in_dispose : 1;
 };
@@ -341,6 +345,10 @@ peas_engine_init (PeasEngine *engine)
                                               PeasEnginePrivate);
 
   engine->priv->in_dispose = FALSE;
+
+  engine->priv->single_instances =
+    g_hash_table_new_full (g_direct_hash, g_direct_equal,
+                           NULL, (GDestroyNotify) g_ptr_array_unref);
 }
 
 static void
@@ -452,6 +460,12 @@ peas_engine_dispose (GObject *object)
 
       if (peas_plugin_info_is_loaded (info))
         peas_engine_unload_plugin (engine, info);
+    }
+
+  if (engine->priv->single_instances != NULL)
+    {
+      g_hash_table_unref (engine->priv->single_instances);
+      engine->priv->single_instances = NULL;
     }
 
   G_OBJECT_CLASS (peas_engine_parent_class)->dispose (object);
@@ -936,6 +950,8 @@ peas_engine_unload_plugin_real (PeasEngine     *engine,
          peas_engine_unload_plugin (engine, other_info);
     }
 
+  g_hash_table_remove (engine->priv->single_instances, info);
+
   /* find the loader and tell it to gc and unload the plugin */
   loader = get_plugin_loader (engine, info);
 
@@ -1005,6 +1021,28 @@ peas_engine_provides_extension (PeasEngine     *engine,
   return peas_plugin_loader_provides_extension (loader, info, extension_type);
 }
 
+typedef struct {
+  PeasEngine *engine;
+  PeasPluginInfo *info;
+} SingleInstanceData;
+
+static void
+single_instance_weak_notify (SingleInstanceData *data,
+                             GObject            *where_the_object_was)
+{
+  GPtrArray *single_instances;
+
+  single_instances = g_hash_table_lookup (data->engine->priv->single_instances,
+                                          data->info);
+
+  g_slice_free (SingleInstanceData, data);
+
+  g_return_if_fail (single_instances != NULL);
+  g_return_if_fail (g_ptr_array_remove_fast (single_instances,
+                                             where_the_object_was));
+  
+}
+
 /**
  * peas_engine_create_extensionv:
  * @engine: A #PeasEngine.
@@ -1032,13 +1070,29 @@ peas_engine_create_extensionv (PeasEngine     *engine,
                                guint           n_parameters,
                                GParameter     *parameters)
 {
+  guint i;
+  GPtrArray *single_instances;
   PeasPluginLoader *loader;
   PeasExtension *extension;
 
   g_return_val_if_fail (PEAS_IS_ENGINE (engine), NULL);
   g_return_val_if_fail (info != NULL, NULL);
   g_return_val_if_fail (peas_plugin_info_is_loaded (info), NULL);
-  g_return_val_if_fail (G_TYPE_IS_INTERFACE (extension_type), FALSE);
+  g_return_val_if_fail (extension_type != PEAS_TYPE_SINGLE_INSTANCE, NULL);
+
+  single_instances = g_hash_table_lookup (engine->priv->single_instances,
+                                          info);
+
+  if (single_instances != NULL)
+    {
+      for (i = 0; i < single_instances->len; ++i)
+        {
+          extension = g_ptr_array_index (single_instances, i);
+
+          if (G_TYPE_CHECK_INSTANCE_TYPE (extension, extension_type))
+            return g_object_ref (extension);
+        }
+    }
 
   loader = get_plugin_loader (engine, info);
   extension = peas_plugin_loader_create_extension (loader, info, extension_type,
@@ -1050,6 +1104,27 @@ peas_engine_create_extensionv (PeasEngine     *engine,
                  peas_plugin_info_get_module_name (info),
                  g_type_name (extension_type));
       return NULL;
+    }
+
+  if (G_TYPE_CHECK_INSTANCE_TYPE (extension, PEAS_TYPE_SINGLE_INSTANCE))
+    {
+      SingleInstanceData *data;
+
+      if (single_instances == NULL)
+        {
+          single_instances = g_ptr_array_new ();
+          g_hash_table_insert (engine->priv->single_instances,
+                               info, single_instances);
+        }
+
+      data = g_slice_new (SingleInstanceData);
+      data->engine = engine;
+      data->info = info;
+
+      g_object_weak_ref (G_OBJECT (extension),
+                         (GWeakNotify) single_instance_weak_notify,
+                         data);
+      g_ptr_array_add (single_instances, extension);
     }
 
   return extension;
@@ -1087,7 +1162,8 @@ peas_engine_create_extension_valist (PeasEngine     *engine,
   g_return_val_if_fail (PEAS_IS_ENGINE (engine), NULL);
   g_return_val_if_fail (info != NULL, NULL);
   g_return_val_if_fail (peas_plugin_info_is_loaded (info), NULL);
-  g_return_val_if_fail (G_TYPE_IS_INTERFACE (extension_type), FALSE);
+  g_return_val_if_fail (G_TYPE_IS_INTERFACE (extension_type), NULL);
+  g_return_val_if_fail (extension_type != PEAS_TYPE_SINGLE_INSTANCE, NULL);
 
   if (!_valist_to_parameter_list (extension_type, first_property,
                                   var_args, &parameters, &n_parameters))
@@ -1144,7 +1220,8 @@ peas_engine_create_extension (PeasEngine     *engine,
   g_return_val_if_fail (PEAS_IS_ENGINE (engine), NULL);
   g_return_val_if_fail (info != NULL, NULL);
   g_return_val_if_fail (peas_plugin_info_is_loaded (info), NULL);
-  g_return_val_if_fail (G_TYPE_IS_INTERFACE (extension_type), FALSE);
+  g_return_val_if_fail (G_TYPE_IS_INTERFACE (extension_type), NULL);
+  g_return_val_if_fail (extension_type != PEAS_TYPE_SINGLE_INSTANCE, NULL);
 
   va_start (var_args, first_property);
   exten = peas_engine_create_extension_valist (engine, info, extension_type,

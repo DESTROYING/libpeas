@@ -26,6 +26,7 @@ INST_H_FILES =			\
 	peas-extension-set.h	\
 	peas-activatable.h	\
 	peas-engine.h		\
+	peas-single-instance.h	\
 	peas.h
 
 NOINST_H_FILES =			\
@@ -57,7 +58,8 @@ C_FILES =				\
 	peas-object-module.c		\
 	peas-plugin-info.c		\
 	peas-plugin-loader.c		\
-	peas-plugin-loader-c.c
+	peas-plugin-loader-c.c		\
+	peas-single-instance.c
 
 BUILT_SOURCES = \
 	peas-marshal.c			\
