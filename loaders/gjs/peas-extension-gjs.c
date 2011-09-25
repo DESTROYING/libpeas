@@ -398,6 +398,95 @@ peas_extension_gjs_class_init (PeasExtensionGjsClass *klass)
   extension_class->call = peas_extension_gjs_call;
 }
 
+static void
+signal_emitted_cb (GClosure              *closure,
+                   GValue                *return_value,
+                   guint                  n_values,
+                   const GValue          *instance_and_params,
+                   GSignalInvocationHint *invocation_hint)
+{
+  PeasExtensionGjs *gexten = PEAS_EXTENSION_GJS (closure->data);
+
+  
+}
+
+static JSBool
+gjs_peas_signal_connect (JSContext *js_context,
+                         uintN      argc,
+                         jsval     *vp)
+{
+  jsval *argv = JS_ARGV (context, vp);
+  PeasExtensionGjs *gexten;
+  gchar *signal_name;
+  jsval callback;
+  JSBool success = JS_FALSE;
+
+  JS_BeginRequest (js_context);
+
+  if (argc != 2)
+    {
+      gjs_throw (js_context, "Must pass at 2 arguments to connect()");
+      goto out;
+    }
+
+  if (!JSVAL_IS_OBJECT (argv[1]) || !JS_ObjectIsFunction (argv[1]))
+    {
+      gjs_throw (js_context, "Must pass an object as the argument 2 "
+                             "of connect()");
+      goto out;
+    }
+
+  if (!JSVAL_IS_STRING (argv[0]) ||
+      !gjs_string_to_utf8 (js_context, argv[0], &signal_name))
+    {
+      gjs_throw (js_context, "Must pass a string as argument 1 of connect()");
+      goto out;
+    }
+
+  gexten = g_object_get_data (G_OBJECT (JS_GetContextPrivate (js_context)),
+                             "PeasExtensionGjs");
+  g_assert (gexten != NULL);
+
+  callback = argv[1];
+
+  exten = PEAS_EXTENSION_WRAPPER (gexten);
+  exten_type = peas_extension_wrapper_get_extension_type (exten);
+  exten_info = g_irepository_find_by_gtype (NULL, exten_type);
+  n_signals = g_interface_info_get_n_signals (exten_info);
+
+  for (i = 0; i < n_signal; ++i)
+    {
+      signal_info = g_interface_info_get_signal (exten_info, i);
+
+      if (g_strcmp0 (g_base_info_get_name (signal_info), signal_name) == 0)
+        break;
+    }
+
+  if (i == n_signals)
+    goto out;
+
+  closure = g_closure_new_object (sizeof (ConnectClosure), G_OBJECT (gexten));
+  g_closure_set_marshal (closure, (GClosureMarshal) signal_emitted_cb);
+  /*g_closure_set_finalize_notifier (closure, NULL, notify_func);*/
+
+  connect_closure = (ConnectClosure *) closure;
+  connect_closure->callback = callaback;
+  connect_closure->signal_info = signal_info;
+  JS_AddObjectRoot (gexten->js_context, &connect_closure->callback);
+
+  /* Let GObject's signals do the works for us */
+  g_signal_connect_closure_by_id (gexten, signal_name, detail, closure, FALSE);
+
+  success = JS_TRUE;
+
+out:
+
+  JS_EndRequest (js_context);
+
+  JS_SET_RVAL (js_context, vp, JSVAL_VOID);
+  return success;
+}
+
 GObject *
 peas_extension_gjs_new (GType      exten_type,
                         JSContext *js_context,
@@ -416,6 +505,26 @@ peas_extension_gjs_new (GType      exten_type,
   gexten->js_object = js_object;
   PEAS_EXTENSION_WRAPPER (gexten)->exten_type = exten_type;
   JS_AddObjectRoot (gexten->js_context, &gexten->js_object);
+
+  if (!JS_DefineFunction (js_context, js_object, "connect",
+                          (JSNative) gjs_peas_signal_connect,
+                          2, GJS_MODULE_PROP_FLAGS | JSFUN_FAST_NATIVE))
+   {
+      g_warning ("Failed to define connect");
+      g_object_unref (gexten);
+      return NULL;
+   }
+
+  /*if (!JS_DefineFunction (js_context, js_object, "emit",
+                          (JSNative) gjs_peas_signal_emit,
+                          2, GJS_MODULE_PROP_FLAGS | JSFUN_FAST_NATIVE))
+     {
+      g_warning ("Failed to define emit");
+      g_object_unref (gexten);
+      return NULL;
+     }*/
+
+  JS_CallFunctionName (js_context, extension, "_init", 0, NULL, NULL);
 
   return G_OBJECT (gexten);
 }

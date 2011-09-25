@@ -35,26 +35,17 @@
 
 G_DEFINE_TYPE (PeasExtensionPython, peas_extension_python, PEAS_TYPE_EXTENSION_WRAPPER);
 
-static void
-call_g_signal_emitv (GObject               *instance,
-                     GSignalInvocationHint *invocation_hint,
-                     guint                  n_values,
-                     const GValue          *instance_and_params,
-                     GValue                *return_value)
-{
-  GValue *real_instance_and_params;
-
-  real_instance_and_params = g_newa (GValue, n_values);
-  memset (real_instance_and_params, 0, sizeof (GValue));
-  g_value_init (&real_instance_and_params[0], G_OBJECT_TYPE (instance));
-  g_value_set_object (&real_instance_and_params[0], instance);
-  memcpy (real_instance_and_params + 1, instance_and_params + 1,
-          sizeof (GValue) * (n_values - 1));
-
-  g_signal_emitv (real_instance_and_params, invocation_hint->signal_id,
-                  invocation_hint->detail, return_value);
-
-  g_value_unset (&real_instance_and_params[0]);
+/* This is a #define so we can use g_newa() */
+#define create_real_instance_and_params(instance, n_values, \
+                                        instance_and_params, \
+                                        real_instance_and_params) \
+{\
+  real_instance_and_params = g_newa (GValue, n_values); \
+  memset (real_instance_and_params, 0, sizeof (GValue)); \
+  g_value_init (&real_instance_and_params[0], G_OBJECT_TYPE (instance)); \
+  g_value_set_object (&real_instance_and_params[0], instance); \
+  memcpy (real_instance_and_params + 1, instance_and_params + 1, \
+          sizeof (GValue) * (n_values - 1)); \
 }
 
 static void
@@ -72,13 +63,18 @@ peas_extension_python_emit_signal (PeasExtensionWrapper  *exten,
   PeasExtensionPython *pyexten = PEAS_EXTENSION_PYTHON (exten);
   PyGILState_STATE state;
   GObject *instance;
+  GValue *real_instance_and_params;
 
   state = pyg_gil_state_ensure ();
 
   instance = pygobject_get (pyexten->instance);
+  create_real_instance_and_params (instance, n_values, instance_and_params,
+                                   real_instance_and_params);
 
-  call_g_signal_emitv (instance, invocation_hint, n_values,
-                       instance_and_params, return_value);
+  g_signal_emitv (real_instance_and_params, invocation_hint->signal_id,
+                  invocation_hint->detail, return_value);
+
+  g_value_unset (&real_instance_and_params[0]);
 
   pyg_gil_state_release (state);
   return TRUE;
@@ -186,42 +182,18 @@ signal_closure_marshal (GClosure              *closure,
                         const GValue          *instance_and_params,
                         GSignalInvocationHint *invocation_hint)
 {
-  GObject *object = G_OBJECT (closure->data);
-  PyGILState_STATE state;
-  const GValue *saved_instance_and_params;
-  static const GValue *current_instance_and_params = NULL;
+  GObject *instance = G_OBJECT (closure->data);
+  GValue *real_instance_and_params;
 
-  /* Because signals to the extension follow the pattern
-   * below we have to guard against recursive signal emissions.
-   *
-   * App->Subclass->Extension->emit(object)->Extension->Subclass
-   */
-  if (current_instance_and_params != NULL &&
-      memcmp (current_instance_and_params, instance_and_params,
-              sizeof (GValue) * n_values) == 0)
-    {
-      GSignalQuery signal_query;
+  create_real_instance_and_params (instance, n_values, instance_and_params,
+                                   real_instance_and_params);
 
-      g_signal_stop_emission (object, invocation_hint->signal_id,
-                              invocation_hint->detail);
+  peas_extension_wrapper_receive_signal (PEAS_EXTENSION_WRAPPER (instance),
+                                         invocation_hint,
+                                         n_values, real_instance_and_params,
+                                         return_value);
 
-      g_signal_query (invocation_hint->signal_id, &signal_query);
-      g_debug ("Blocked recursive emission of '%s::%s'",
-               G_OBJECT_TYPE_NAME (object), signal_query.signal_name);
-      return;
-    }
-
-  saved_instance_and_params = current_instance_and_params;
-  current_instance_and_params = instance_and_params;
-
-  state = pyg_gil_state_ensure ();
-
-  call_g_signal_emitv (object, invocation_hint, n_values,
-                       instance_and_params, return_value);
-
-  pyg_gil_state_release (state);
-
-  current_instance_and_params = saved_instance_and_params;
+  g_value_unset (&real_instance_and_params[0]);
 }
 
 GObject *
@@ -232,7 +204,7 @@ peas_extension_python_new (GType     gtype,
   GType real_type;
   guint n_signals, i;
   guint *signals;
-  GClosure *signal_closure;
+  GClosure *signal_closure = NULL;
   GObject *gobject_instance;
 
   real_type = peas_extension_register_subclass (PEAS_TYPE_EXTENSION_PYTHON, gtype);
@@ -243,24 +215,23 @@ peas_extension_python_new (GType     gtype,
   Py_INCREF (instance);
 
   signals = g_signal_list_ids (gtype, &n_signals);
-
-  if (n_signals > 0)
-    {
-      signal_closure = g_closure_new_object (sizeof (GClosure),
-                                             G_OBJECT (pyexten));
-      g_closure_set_marshal (signal_closure,
-                             (GClosureMarshal) signal_closure_marshal);
-
-      gobject_instance = pygobject_get (pyexten->instance);
-    }
+  gobject_instance = pygobject_get (pyexten->instance);
 
   for (i = 0; i < n_signals; ++i)
     {
       GSignalQuery signal_query;
 
+      if (signal_closure == NULL)
+        {
+          signal_closure = g_closure_new_object (sizeof (GClosure),
+                                                 G_OBJECT (pyexten));
+          g_closure_set_marshal (signal_closure,
+                                 (GClosureMarshal) signal_closure_marshal);
+        }
+
       g_signal_query (signals[i], &signal_query);
 
-      g_debug ("Overrided '%s::%s' for '%s' proxy",
+      g_debug ("Connected to '%s::%s' on '%s' instance",
                g_type_name (gtype), signal_query.signal_name,
                G_OBJECT_TYPE_NAME (gobject_instance));
 

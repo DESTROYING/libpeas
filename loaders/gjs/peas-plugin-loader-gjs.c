@@ -227,7 +227,7 @@ peas_plugin_loader_gjs_create_extension (PeasPluginLoader *loader,
       g_warning ("Error: failed to set property 'plugin_info'");
     }
 
-  g_value_unset (&gvalue);
+  g_value_unset (&gvalue); 
 
   return peas_extension_gjs_new (exten_type, js_context, extension);
 }

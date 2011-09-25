@@ -40,9 +40,6 @@ typedef struct _IntrospectionSignalsInterface  IntrospectionSignalsInterface;
 
 struct _IntrospectionSignalsInterface {
   GTypeInterface g_iface;
-
-  /* Virtual Functions */
-  void (*emit_no_args) (IntrospectionSignals *signals);
 };
 
 /*

@@ -57,11 +57,8 @@ void testing_extension_properties_construct_only_ (PeasEngine *engine);
 void testing_extension_properties_read_only_      (PeasEngine *engine);
 void testing_extension_properties_write_only_     (PeasEngine *engine);
 void testing_extension_properties_readwrite_      (PeasEngine *engine);
-void testing_extension_signals_no_args_           (PeasEngine *engine);
-void testing_extension_signals_with_return_       (PeasEngine *engine);
-void testing_extension_signals_single_arg_        (PeasEngine *engine);
-void testing_extension_signals_multi_args_        (PeasEngine *engine);
-void testing_extension_signals_emitted_no_args_   (PeasEngine *engine);
+void testing_extension_signals_to_extension_      (PeasEngine *engine);
+void testing_extension_signals_from_extension_    (PeasEngine *engine);
 
 #define _EXTENSION_TEST(loader, path, ftest) \
   g_test_add ("/extension/" #loader "/" path, TestingExtensionFixture_, \
@@ -101,12 +98,8 @@ void testing_extension_signals_emitted_no_args_   (PeasEngine *engine);
   _EXTENSION_TEST (loader, "properties-readwrite", properties_readwrite)
 
 #define EXTENSION_TESTS_SIGNALS(loader) \
-  _EXTENSION_TEST (loader, "signals-no-args", signals_no_args); \
-  _EXTENSION_TEST (loader, "signals-with-return", signals_with_return); \
-  _EXTENSION_TEST (loader, "signals-single-arg", signals_single_arg); \
-  _EXTENSION_TEST (loader, "signals-multi-args", signals_multi_args); \
-\
-  _EXTENSION_TEST (loader, "signals-emitted-no-args", signals_emitted_no_args)
+  _EXTENSION_TEST (loader, "signals-to-extension", signals_to_extension); \
+  _EXTENSION_TEST (loader, "signals-from-extension", signals_from_extension)
 
 #define EXTENSION_TESTS(loader) \
   EXTENSION_TESTS_INIT (loader); \

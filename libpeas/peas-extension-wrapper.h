@@ -46,6 +46,9 @@ struct _PeasExtensionWrapper {
   /*< private >*/
   GType exten_type;
   gboolean constructed;
+  const GSignalInvocationHint *current_invocation_hint;
+  const GValue *current_instance_and_params;
+  
 };
 
 struct _PeasExtensionWrapperClass {
@@ -78,6 +81,12 @@ gboolean     peas_extension_wrapper_callv       (PeasExtensionWrapper  *exten,
                                                  GIArgument            *return_value);
 
 gboolean     peas_extension_wrapper_emit_signal (PeasExtensionWrapper  *exten,
+                                                 GSignalInvocationHint *invocation_hint,
+                                                 guint                  n_values,
+                                                 const GValue          *instance_and_params,
+                                                 GValue                *return_value);
+gboolean     peas_extension_wrapper_receive_signal
+                                                (PeasExtensionWrapper  *exten,
                                                  GSignalInvocationHint *invocation_hint,
                                                  guint                  n_values,
                                                  const GValue          *instance_and_params,

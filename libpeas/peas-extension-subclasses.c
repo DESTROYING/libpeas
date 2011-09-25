@@ -266,44 +266,14 @@ signal_class_closure_marshal (GClosure              *closure,
                               GSignalInvocationHint *invocation_hint)
 {
   GObject *object;
-  GSignalQuery signal_query;
-  const GValue *saved_instance_and_params;
-  static const GValue *current_instance_and_params = NULL;
 
   object = g_value_get_object (&instance_and_params[0]);
 
-  g_signal_query (invocation_hint->signal_id, &signal_query);
-
-  /* Because signals to the extension follow the pattern
-   * below we have to guard against recursive signal emissions.
-   *
-   * App->Subclass->Extension->emit(object)->Extension->Subclass
-   */
-  if (current_instance_and_params != NULL &&
-      memcmp (current_instance_and_params, instance_and_params,
-              sizeof (GValue) * n_values) == 0)
-    {
-      g_signal_stop_emission (object, invocation_hint->signal_id,
-                              invocation_hint->detail);
-      g_debug ("Blocked recursive emission of '%s::%s'",
-               G_OBJECT_TYPE_NAME (object), signal_query.signal_name);
-      return;
-    }
-
-  saved_instance_and_params = current_instance_and_params;
-  current_instance_and_params = instance_and_params;
-
-  g_debug ("Emitting '%s::%s'",
-           G_OBJECT_TYPE_NAME (object), signal_query.signal_name);
-
+  /* This will chain up for us */
   peas_extension_wrapper_emit_signal (PEAS_EXTENSION_WRAPPER (object),
                                       invocation_hint,
                                       n_values, instance_and_params,
                                       return_value);
-
-  current_instance_and_params = saved_instance_and_params;
-
-  g_signal_chain_from_overridden (instance_and_params, return_value);
 }
 
 static void

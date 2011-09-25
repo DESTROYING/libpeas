@@ -2,6 +2,7 @@
 # ex:set ts=4 et sw=4 ai:
 
 from gi.repository import GObject, Introspection, Peas
+import traceback
 
 class CallablePythonPlugin(GObject.Object, Introspection.Callable):
     def do_call_with_return(self):
@@ -29,28 +30,16 @@ class SignalsPythonPlugin(GObject.Object, Introspection.Signals):
     def __init__(self):
         GObject.Object.__init__(self)
 
-        self.no_args_called = False
+        self.connect("a-signal", self.on_a_signal)
+        self.connect("emit-a-signal", self.on_emit_a_signal)
 
-        self.connect("no-args", self.on_no_args)
-        self.connect("with-return", self.on_with_return)
-        self.connect("single-arg", self.on_single_arg)
-        self.connect("multi-args", self.on_multi_args)
-
-    def on_no_args(self, junk):
-        self.no_args_called = True
-
-    def on_with_return(self, junk):
-        return self.no_args_called
-
-    def on_single_arg(self, junk, number):
+    def on_a_signal(self, junk, number):
+        print("on_a_signal: %i" % (number))
         return number
 
-    def on_multi_args(self, junk, number_1, number_2, number_3):
-        return number_1 + number_2 + number_3
-
-
-    def do_emit_no_args(self):
-        self.emit("no-args")
+    def on_emit_a_signal(self, junk, number):
+        print("on_emit_a_signal: %i" % (number))
+        self.emit("a-signal", number)
 
 class ActivatablePythonExtension(GObject.Object, Peas.Activatable):
     object = GObject.property(type=GObject.Object)

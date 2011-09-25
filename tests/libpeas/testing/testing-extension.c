@@ -408,61 +408,12 @@ testing_extension_properties_readwrite_ (PeasEngine *engine)
 }
 
 void
-testing_extension_signals_no_args_ (PeasEngine *engine)
+testing_extension_signals_to_extension_ (PeasEngine *engine)
 {
   PeasPluginInfo *info;
   PeasExtension *extension;
   IntrospectionSignals *signals;
-
-  info = peas_engine_get_plugin_info (engine, extension_plugin);
-
-  g_assert (peas_engine_load_plugin (engine, info));
-
-  extension = peas_engine_create_extension (engine, info,
-                                            INTROSPECTION_TYPE_SIGNALS,
-                                            NULL);
-
-  signals = INTROSPECTION_SIGNALS (extension);
-
-  g_signal_emit_by_name (signals, "no-args");
-
-  g_object_unref (extension);
-}
-
-void
-testing_extension_signals_with_return_ (PeasEngine *engine)
-{
-  PeasPluginInfo *info;
-  PeasExtension *extension;
-  IntrospectionSignals *signals;
-  gboolean no_args_called = FALSE;
-
-  info = peas_engine_get_plugin_info (engine, extension_plugin);
-
-  g_assert (peas_engine_load_plugin (engine, info));
-
-  extension = peas_engine_create_extension (engine, info,
-                                            INTROSPECTION_TYPE_SIGNALS,
-                                            NULL);
-
-  signals = INTROSPECTION_SIGNALS (extension);
-
-  g_signal_emit_by_name (signals, "no-args");
-  g_signal_emit_by_name (signals, "with-return", &no_args_called);
-
-  g_assert (no_args_called);
-
-  g_object_unref (extension);
-}
-
-void
-testing_extension_signals_single_arg_ (PeasEngine *engine)
-{
-  PeasPluginInfo *info;
-  PeasExtension *extension;
-  IntrospectionSignals *signals;
-  gint number;
-  gint number_out;
+  gint number, number_out;
 
   info = peas_engine_get_plugin_info (engine, extension_plugin);
 
@@ -476,52 +427,28 @@ testing_extension_signals_single_arg_ (PeasEngine *engine)
 
   number = g_random_int ();
 
-  g_signal_emit_by_name (signals, "single-arg", number, &number_out);
+  g_signal_emit_by_name (signals, "a-signal", number, &number_out);
 
   g_assert_cmpint (number, ==, number_out);
 
   g_object_unref (extension);
 }
 
-void
-testing_extension_signals_multi_args_ (PeasEngine *engine)
+static void
+emit_a_signal_cb (IntrospectionSignals *signals,
+                  gint                  emitted_number,
+                  gint                 *number_out)
 {
-  PeasPluginInfo *info;
-  PeasExtension *extension;
-  IntrospectionSignals *signals;
-  gint number_1, number_2, number_3;
-  gint number_out;
-
-  info = peas_engine_get_plugin_info (engine, extension_plugin);
-
-  g_assert (peas_engine_load_plugin (engine, info));
-
-  extension = peas_engine_create_extension (engine, info,
-                                            INTROSPECTION_TYPE_SIGNALS,
-                                            NULL);
-
-  signals = INTROSPECTION_SIGNALS (extension);
-
-  /* Avoid overflow */
-  number_1 = g_random_int_range (0, 1000);
-  number_2 = g_random_int_range (0, 1000);
-  number_3 = g_random_int_range (0, 1000);
-
-  g_signal_emit_by_name (signals, "multi-args", number_1, number_2, number_3,
-                         &number_out);
-  
-  g_assert_cmpint (number_1 + number_2 + number_3, ==, number_out);
-
-  g_object_unref (extension);
+  *number_out = emitted_number;
 }
 
 void
-testing_extension_signals_emitted_no_args_ (PeasEngine *engine)
+testing_extension_signals_from_extension_ (PeasEngine *engine)
 {
   PeasPluginInfo *info;
   PeasExtension *extension;
   IntrospectionSignals *signals;
-  
+  gint number, number_out;
 
   info = peas_engine_get_plugin_info (engine, extension_plugin);
 
@@ -533,7 +460,16 @@ testing_extension_signals_emitted_no_args_ (PeasEngine *engine)
 
   signals = INTROSPECTION_SIGNALS (extension);
 
-  introspection_signals_emit_no_args (signals);
+  number = g_random_int ();
 
-  g_object_unref (signals);
+  g_signal_connect (signals,
+                    "a-signal",
+                    G_CALLBACK (emit_a_signal_cb),
+                    &number_out);
+
+  g_signal_emit_by_name (signals, "emit-a-signal", number);
+
+  g_assert_cmpint (number, ==, number_out);
+
+  g_object_unref (extension);
 }

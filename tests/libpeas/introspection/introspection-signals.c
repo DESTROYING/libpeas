@@ -32,10 +32,8 @@
 G_DEFINE_INTERFACE(IntrospectionSignals, introspection_signals, 0)
 
 enum {
-  NO_ARGS,
-  SINGLE_ARG,
-  WITH_RETURN,
-  MULTI_ARGS,
+  A_SIGNAL,
+  EMIT_A_SIGNAL,
   LAST_SIGNAL
 };
 
@@ -52,55 +50,25 @@ introspection_signals_default_init (IntrospectionSignalsInterface *iface)
 
   /* Use g_signal_new_class_handler() so there is no VFunc */
 
-  signals[NO_ARGS] =
-    g_signal_new_class_handler ("no-args",
-                                the_type,
-                                G_SIGNAL_RUN_LAST,
-                                NULL, NULL, NULL,
-                                gi_cclosure_marshal_generic,
-                                G_TYPE_NONE,
-                                0);
-
-  signals[WITH_RETURN] =
-    g_signal_new_class_handler ("with-return",
-                                the_type,
-                                G_SIGNAL_RUN_LAST,
-                                NULL, NULL, NULL,
-                                gi_cclosure_marshal_generic,
-                                G_TYPE_BOOLEAN,
-                                0);
-
-  signals[SINGLE_ARG] =
-    g_signal_new_class_handler ("single-arg",
-                               the_type,
-                               G_SIGNAL_RUN_LAST,
-                               NULL, NULL, NULL,
-                               gi_cclosure_marshal_generic,
-                               G_TYPE_INT,
-                               1,
-                               G_TYPE_INT);
-
-  signals[MULTI_ARGS] =
-    g_signal_new_class_handler ("multi-args",
+  signals[A_SIGNAL] =
+    g_signal_new_class_handler ("a-signal",
                                 the_type,
                                 G_SIGNAL_RUN_LAST,
                                 NULL, NULL, NULL,
                                 gi_cclosure_marshal_generic,
                                 G_TYPE_INT,
-                                3,
-                                G_TYPE_INT, G_TYPE_INT, G_TYPE_INT);
+                                1,
+                                G_TYPE_INT);
+
+  signals[EMIT_A_SIGNAL] =
+    g_signal_new_class_handler ("emit-a-signal",
+                                the_type,
+                                G_SIGNAL_RUN_LAST,
+                                NULL, NULL, NULL,
+                                gi_cclosure_marshal_generic,
+                                G_TYPE_NONE,
+                                1,
+                                G_TYPE_INT);
 
   initialized = TRUE;
-}
-
-void
-introspection_signals_emit_no_args (IntrospectionSignals *signals)
-{
-  IntrospectionSignalsInterface *iface;
-
-  g_return_if_fail (INTROSPECTION_IS_SIGNALS (signals));
-
-  iface = INTROSPECTION_SIGNALS_GET_IFACE (signals);
-  if (iface->emit_no_args != NULL)
-    iface->emit_no_args (signals);
 }
