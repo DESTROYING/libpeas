@@ -44,8 +44,6 @@ struct _PeasExtensionWrapper {
   GObject parent;
 
   /*< private >*/
-  GType exten_type;
-  GType *interfaces;
   gboolean constructed;
 };
 
@@ -65,9 +63,6 @@ struct _PeasExtensionWrapperClass {
  * Public methods
  */
 GType        peas_extension_wrapper_get_type    (void)  G_GNUC_CONST;
-
-GType        peas_extension_wrapper_get_extension_type
-                                                (PeasExtensionWrapper *exten);
 
 gboolean     peas_extension_wrapper_callv       (PeasExtensionWrapper *exten,
                                                  GType                 interface_type,

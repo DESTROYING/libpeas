@@ -44,39 +44,15 @@ peas_extension_wrapper_constructed (GObject *object)
 }
 
 static void
-peas_extension_wrapper_dispose (GObject *object)
-{
-  PeasExtensionWrapper *exten = PEAS_EXTENSION_WRAPPER (object);
-
-  if (exten->interfaces != NULL)
-    {
-      g_free (exten->interfaces);
-      exten->interfaces = NULL;
-    }
-
-  if (G_OBJECT_CLASS (peas_extension_wrapper_parent_class)->dispose != NULL)
-    G_OBJECT_CLASS (peas_extension_wrapper_parent_class)->dispose (object);
-}
-
-static void
 peas_extension_wrapper_class_init (PeasExtensionWrapperClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->constructed = peas_extension_wrapper_constructed;
-  object_class->dispose = peas_extension_wrapper_dispose;
 
   /* Don't add properties as they could shadow the instance's
    * and C plugins would not have the property.
    */
-}
-
-GType
-peas_extension_wrapper_get_extension_type (PeasExtensionWrapper *exten)
-{
-  g_return_val_if_fail (PEAS_IS_EXTENSION_WRAPPER (exten), G_TYPE_INVALID);
-
-  return exten->exten_type;
 }
 
 gboolean

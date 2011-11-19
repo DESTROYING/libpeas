@@ -144,19 +144,15 @@ peas_extension_python_new (GType     exten_type,
 
   real_type = peas_extension_register_subclass (PEAS_TYPE_EXTENSION_PYTHON,
                                                 interfaces);
+  g_free (interfaces);
 
   /* Already Warned */
   if (real_type == G_TYPE_INVALID)
-    {
-      g_free (interfaces);
-      return NULL;
-    }
+    return NULL;
 
   pyexten = PEAS_EXTENSION_PYTHON (g_object_new (real_type, NULL));
 
   pyexten->instance = instance;
-  PEAS_EXTENSION_WRAPPER (pyexten)->exten_type = exten_type;
-  PEAS_EXTENSION_WRAPPER (pyexten)->interfaces = interfaces;
   Py_INCREF (instance);
 
   return G_OBJECT (pyexten);

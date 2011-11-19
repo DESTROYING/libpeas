@@ -406,20 +406,16 @@ peas_extension_gjs_new (GType      exten_type,
 
   real_type = peas_extension_register_subclass (PEAS_TYPE_EXTENSION_GJS,
                                                 interfaces);
+  g_free (interfaces);
 
   /* Already Warned */
   if (real_type == G_TYPE_INVALID)
-    {
-      g_free (interfaces);
-      return NULL;
-    }
+    return NULL;
 
   gexten = PEAS_EXTENSION_GJS (g_object_new (real_type, NULL));
 
   gexten->js_context = js_context;
   gexten->js_object = js_object;
-  PEAS_EXTENSION_WRAPPER (gexten)->exten_type = exten_type;
-  PEAS_EXTENSION_WRAPPER (gexten)->interfaces = interfaces;
   JS_AddObjectRoot (gexten->js_context, &gexten->js_object);
 
   return G_OBJECT (gexten);

@@ -309,20 +309,16 @@ peas_extension_seed_new (GType        exten_type,
 
   real_type = peas_extension_register_subclass (PEAS_TYPE_EXTENSION_SEED,
                                                 interfaces);
+  g_free (interfaces);
 
   /* Already Warned */
   if (real_type == G_TYPE_INVALID)
-    {
-      g_free (interfaces);
-      return NULL;
-    }
+    return NULL;
 
   sexten = PEAS_EXTENSION_SEED (g_object_new (real_type, NULL));
 
   sexten->js_context = js_context;
   sexten->js_object = js_object;
-  PEAS_EXTENSION_WRAPPER (sexten)->exten_type = exten_type;
-  PEAS_EXTENSION_WRAPPER (sexten)->interfaces = interfaces;
 
   seed_context_ref (sexten->js_context);
   seed_value_protect (sexten->js_context, sexten->js_object);
