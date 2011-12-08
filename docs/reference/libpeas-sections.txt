@@ -38,8 +38,6 @@ PeasGtkPluginManagerPrivate
 PeasGtkPluginManagerView
 PeasGtkPluginManagerViewClass
 peas_gtk_plugin_manager_view_new
-peas_gtk_plugin_manager_view_set_show_builtin
-peas_gtk_plugin_manager_view_get_show_builtin
 peas_gtk_plugin_manager_view_set_selected_plugin
 peas_gtk_plugin_manager_view_get_selected_plugin
 <SUBSECTION Standard>
@@ -111,9 +109,6 @@ PEAS_ACTIVATABLE_GET_IFACE
 PeasExtensionSet
 PeasExtensionSetClass
 PeasExtensionSetForeachFunc
-peas_extension_set_call
-peas_extension_set_call_valist
-peas_extension_set_callv
 peas_extension_set_foreach
 peas_extension_set_get_extension
 peas_extension_set_new
@@ -174,23 +169,6 @@ PEAS_IS_EXTENSION_BASE_CLASS
 PEAS_EXTENSION_BASE_GET_CLASS
 <SUBSECTION Private>
 PeasExtensionBasePrivate
-</SECTION>
-
-<SECTION>
-<FILE>peas-extension</FILE>
-<TITLE>PeasExtension</TITLE>
-PeasExtension
-peas_extension_get_extension_type
-peas_extension_call
-peas_extension_call_valist
-peas_extension_callv
-<SUBSECTION Standard>
-PEAS_EXTENSION
-PEAS_IS_EXTENSION
-PEAS_TYPE_EXTENSION
-peas_extension_get_type
-<SUBSECTION Private>
-PeasExtensionPrivate
 </SECTION>
 
 <SECTION>

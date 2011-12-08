@@ -57,7 +57,6 @@ struct _PeasExtensionSet {
 /**
  * PeasExtensionSetClass:
  * @parent_class: The parent class.
- * @call: The VFunc for peas_extension_set_call().
  * @extension_added: Signal class handler for the
  *                   #PeasExtensionSet::extension-added signal.
  * @extension_removed: Signal class handler for the
