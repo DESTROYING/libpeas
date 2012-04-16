@@ -135,7 +135,7 @@ testing_util_init (void)
 
   g_setenv ("PEAS_PLUGIN_LOADERS_DIR", BUILDDIR "/loaders", TRUE);
 
-  g_irepository_require (g_irepository_get_default (), "Peas", "1.0", 0, &error);
+  g_irepository_require (g_irepository_get_default (), "Peas", "2.0", 0, &error);
   g_assert_no_error (error);
 
   log_hooks = g_ptr_array_new_with_free_func (g_free);

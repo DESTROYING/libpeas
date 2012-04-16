@@ -39,7 +39,7 @@ peas_dirs_get_data_dir (void)
 
   win32_dir = g_win32_get_package_installation_directory_of_module (NULL);
 
-  data_dir = g_build_filename (win32_dir, "share", "libpeas-1.0", NULL);
+  data_dir = g_build_filename (win32_dir, "share", "libpeas-2.0", NULL);
   g_free (win32_dir);
 #elif defined (OS_OSX)
   IgeMacBundle *bundle = ige_mac_bundle_get_default ();
@@ -48,14 +48,14 @@ peas_dirs_get_data_dir (void)
     {
       const gchar *bundle_data_dir = ige_mac_bundle_get_datadir (bundle);
 
-      data_dir = g_build_filename (bundle_data_dir, "libpeas-1.0", NULL);
+      data_dir = g_build_filename (bundle_data_dir, "libpeas-2.0", NULL);
     }
   else
     {
-      data_dir = g_build_filename (DATADIR, "libpeas-1.0", NULL);
+      data_dir = g_build_filename (DATADIR, "libpeas-2.0", NULL);
     }
 #else
-  data_dir = g_build_filename (DATADIR, "libpeas-1.0", NULL);
+  data_dir = g_build_filename (DATADIR, "libpeas-2.0", NULL);
 #endif
 
   return data_dir;
@@ -71,7 +71,7 @@ peas_dirs_get_lib_dir (void)
 
   win32_dir = g_win32_get_package_installation_directory_of_module (NULL);
 
-  lib_dir = g_build_filename (win32_dir, "lib", "libpeas-1.0", NULL);
+  lib_dir = g_build_filename (win32_dir, "lib", "libpeas-2.0", NULL);
   g_free (win32_dir);
 #elif defined (OS_OSX)
   IgeMacBundle *bundle = ige_mac_bundle_get_default ();
@@ -80,14 +80,14 @@ peas_dirs_get_lib_dir (void)
     {
       const gchar *path = ige_mac_bundle_get_resourcesdir (bundle);
 
-      lib_dir = g_build_filename (path, "lib", "libpeas-1.0", NULL);
+      lib_dir = g_build_filename (path, "lib", "libpeas-2.0", NULL);
     }
   else
     {
-      lib_dir = g_build_filename (LIBDIR, "libpeas-1.0", NULL);
+      lib_dir = g_build_filename (LIBDIR, "libpeas-2.0", NULL);
     }
 #else
-  lib_dir = g_build_filename (LIBDIR, "libpeas-1.0", NULL);
+  lib_dir = g_build_filename (LIBDIR, "libpeas-2.0", NULL);
 #endif
 
   return lib_dir;

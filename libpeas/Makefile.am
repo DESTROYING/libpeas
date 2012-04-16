@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libpeas-1.0.la
+lib_LTLIBRARIES = libpeas-2.0.la
 
 INCLUDES =								\
 	-I$(top_srcdir)							\
@@ -11,12 +11,12 @@ INCLUDES =								\
 	-DDATADIR=\""$(datadir)"\"					\
 	-DLIBDIR=\""$(libdir)"\"
 
-libpeas_1_0_la_LDFLAGS = \
+libpeas_2_0_la_LDFLAGS = \
 	$(GCOV_LDFLAGS) \
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) \
 	-export-dynamic -no-undefined -export-symbols-regex "^[^_].*"
 
-libpeas_1_0_la_LIBADD = $(PEAS_LIBS) $(IGE_MAC_LIBS)
+libpeas_2_0_la_LIBADD = $(PEAS_LIBS) $(IGE_MAC_LIBS)
 
 INST_H_FILES =			\
 	peas-plugin-info.h	\
@@ -61,13 +61,13 @@ BUILT_SOURCES = \
 	peas-marshal.c			\
 	peas-marshal.h
 
-libpeas_1_0_la_SOURCES = 	\
+libpeas_2_0_la_SOURCES = 	\
 	$(INST_H_FILES)		\
 	$(NOINST_H_FILES)	\
 	$(BUILT_SOURCES)	\
 	$(C_FILES)
 
-headerdir = $(prefix)/include/libpeas-1.0/libpeas
+headerdir = $(prefix)/include/libpeas-2.0/libpeas
 header_DATA = $(INST_H_FILES)
 
 peas-marshal.c: peas-marshal.list $(GLIB_GENMARSHAL)
@@ -85,7 +85,7 @@ dist-hook:
 
 if HAVE_INTROSPECTION
   -include $(INTROSPECTION_MAKEFILE)
-  INTROSPECTION_GIRS = Peas-1.0.gir
+  INTROSPECTION_GIRS = Peas-2.0.gir
   INTROSPECTION_SCANNER_ARGS = \
 	-I$(top_srcdir) 		\
 	--c-include=libpeas/peas.h	\
@@ -93,12 +93,12 @@ if HAVE_INTROSPECTION
 
   introspection_sources = $(INST_H_FILES) $(C_FILES)
 
-  Peas-1.0.gir: libpeas-1.0.la
-  Peas_1_0_gir_INCLUDES = GObject-2.0 GModule-2.0 Gio-2.0 GIRepository-2.0
-  Peas_1_0_gir_CFLAGS = $(PEAS_CFLAGS)
-  Peas_1_0_gir_LIBS = libpeas-1.0.la
-  Peas_1_0_gir_FILES = $(addprefix $(srcdir)/,$(introspection_sources))
-  Peas_1_0_gir_EXPORT_PACKAGES = libpeas-1.0
+  Peas-2.0.gir: libpeas-2.0.la
+  Peas_2_0_gir_INCLUDES = GObject-2.0 GModule-2.0 Gio-2.0 GIRepository-2.0
+  Peas_2_0_gir_CFLAGS = $(PEAS_CFLAGS)
+  Peas_2_0_gir_LIBS = libpeas-2.0.la
+  Peas_2_0_gir_FILES = $(addprefix $(srcdir)/,$(introspection_sources))
+  Peas_2_0_gir_EXPORT_PACKAGES = libpeas-2.0
 
   girdir = $(datadir)/gir-1.0
   gir_DATA = $(INTROSPECTION_GIRS)

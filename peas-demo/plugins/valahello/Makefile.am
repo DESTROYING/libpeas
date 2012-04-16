@@ -8,7 +8,7 @@ INCLUDES = \
 VALAFLAGS = \
 	--girdir $(top_builddir)/libpeas \
 	--girdir $(top_builddir)/libpeas-gtk \
-	--pkg PeasGtk-1.0 --pkg gtk+-3.0
+	--pkg PeasGtk-2.0 --pkg gtk+-3.0
 
 plugin_LTLIBRARIES = libvalahello.la
 
