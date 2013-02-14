@@ -325,6 +325,9 @@ loader_destroy (LoaderInfo *info)
 static void
 peas_engine_init (PeasEngine *engine)
 {
+  gchar *plugins_dir;
+  gchar *plugins_data_dir;
+
   /* Set the default engine here and not in constructor() to make sure
    * that if a plugin is loaded and calls peas_engine_get_default()
    * that this engine is returned and not another.
@@ -341,6 +344,14 @@ peas_engine_init (PeasEngine *engine)
                                               PeasEnginePrivate);
 
   engine->priv->in_dispose = FALSE;
+
+  plugins_dir = peas_dirs_get_plugins_dir ();
+  plugins_data_dir = peas_dirs_get_plugins_data_dir ();
+
+  peas_engine_add_search_path (engine, plugins_dir, plugins_data_dir);
+
+  g_free (plugins_data_dir);
+  g_free (plugins_dir);
 }
 
 static void

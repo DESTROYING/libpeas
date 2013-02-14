@@ -50,6 +50,8 @@ IGNORE_HFILES=		\
 	peas-engine-priv.h			\
 	peas-extension-wrapper.h		\
 	peas-extension-subclasses.h		\
+	peas-gtk-console-buffer.h		\
+	peas-gtk-console-history.h		\
 	peas-gtk-disable-plugins-dialog.h       \
 	peas-gtk-plugin-manager-store.h		\
 	peas-helpers.h				\

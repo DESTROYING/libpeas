@@ -20,7 +20,9 @@
 #ifndef __PEAS_GTK_H__
 #define __PEAS_GTK_H__
 
+#include "peas-gtk-console.h"
 #include "peas-gtk-configurable.h"
+#include "peas-gtk-console.h"
 #include "peas-gtk-plugin-manager.h"
 #include "peas-gtk-plugin-manager-view.h"
 

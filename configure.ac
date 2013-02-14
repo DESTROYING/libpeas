@@ -493,6 +493,8 @@ peas-demo/plugins/helloworld/Makefile
 peas-demo/plugins/pythonhello/Makefile
 peas-demo/plugins/secondtime/Makefile
 peas-demo/plugins/seedhello/Makefile
+plugins/Makefile
+plugins/peas-interpreter-python3/Makefile
 po/Makefile.in
 tests/Makefile
 tests/libpeas/Makefile
